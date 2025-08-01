@@ -1,5 +1,7 @@
 # Stripe Integration
 
+> **Complete payment processing integration with Stripe. Handle customers, charges, and payment methods securely in your Node.js application.**
+
 Install package:
 
 ```bash
