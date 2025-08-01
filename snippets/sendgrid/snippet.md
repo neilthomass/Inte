@@ -33,3 +33,30 @@ const messages = [
 
 await sgMail.send(messages);
 ```
+Add attachments:
+
+```javascript
+const fileData = require('fs').readFileSync('./invoice.pdf').toString('base64');
+await sgMail.send({
+  ...msg,
+  attachments: [
+    {
+      content: fileData,
+      filename: 'invoice.pdf',
+      type: 'application/pdf',
+      disposition: 'attachment'
+    }
+  ]
+});
+```
+
+Check email statistics:
+
+```javascript
+const stats = await sgMail.client.request({
+  method: 'GET',
+  url: '/v3/stats',
+  qs: { start_date: '2024-01-01', end_date: '2024-01-31' }
+});
+console.log(stats[1]);
+```
