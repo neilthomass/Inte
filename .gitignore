@@ -1,2 +1,5 @@
 /build
 /node_modules
+web/node_modules
+web/.next
+web/package-lock.json

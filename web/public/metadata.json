@@ -1,0 +1,35 @@
+[
+  {
+    "vendorName": "GitHub",
+    "language": "JavaScript",
+    "topics": [
+      "version control",
+      "api",
+      "nodejs"
+    ],
+    "lastUpdated": "2025-07-30",
+    "slug": "github"
+  },
+  {
+    "vendorName": "Stripe",
+    "language": "JavaScript",
+    "topics": [
+      "payments",
+      "api",
+      "nodejs"
+    ],
+    "lastUpdated": "2025-07-30",
+    "slug": "stripe"
+  },
+  {
+    "vendorName": "Twilio",
+    "language": "JavaScript",
+    "topics": [
+      "sms",
+      "api",
+      "nodejs"
+    ],
+    "lastUpdated": "2025-07-30",
+    "slug": "twilio"
+  }
+]
