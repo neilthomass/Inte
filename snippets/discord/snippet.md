@@ -35,3 +35,24 @@ const embed = {
 
 await webhook.send({ embeds: [embed] });
 ```
+Handle message updates:
+
+```javascript
+const message = await webhook.send({ content: 'Initial message' });
+await webhook.editMessage(message.id, { content: 'Updated content' });
+```
+
+Listen for bot commands:
+
+```javascript
+const { Client, GatewayIntentBits } = require('discord.js');
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
+
+client.on('messageCreate', (msg) => {
+  if (msg.content === '!ping') {
+    msg.reply('Pong!');
+  }
+});
+
+client.login(process.env.DISCORD_BOT_TOKEN);
+```

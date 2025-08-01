@@ -19,3 +19,20 @@ Fetch message list:
 ```javascript
 const messages = await client.messages.list({ limit: 5 });
 ```
+
+Check delivery status:
+
+```javascript
+const status = await client.messages('SM123').fetch();
+console.log(status.status);
+```
+
+Make a voice call:
+
+```javascript
+await client.calls.create({
+  twiml: '<Response><Say>Hello!</Say></Response>',
+  from: '+10000000000',
+  to: '+19999999999'
+});
+```

@@ -34,3 +34,20 @@ const embedding = await openai.embeddings.create({
 
 const vector = embedding.data[0].embedding;
 ```
+Stream completions:
+
+```javascript
+for await (const chunk of openai.beta.chat.completions.stream({
+  model: 'gpt-3.5-turbo',
+  messages: [{ role: 'user', content: 'Tell me a joke' }]
+})) {
+  process.stdout.write(chunk.choices[0]?.delta?.content || '');
+}
+```
+
+Check moderation:
+
+```javascript
+const moderation = await openai.moderations.create({ input: 'Some text' });
+console.log(moderation.results[0].flagged);
+```
