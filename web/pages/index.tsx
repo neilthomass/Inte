@@ -15,7 +15,9 @@ export default function Home() {
   const [snippet, setSnippet] = useState('');
 
   useEffect(() => {
-    fetch('/metadata.json').then(res => res.json()).then(setVendors);
+    fetch('https://raw.githubusercontent.com/neiltthomas/inte/main/snippets/metadata.json')
+      .then(res => res.json())
+      .then(setVendors);
   }, []);
 
   const filtered = vendors.filter(v => {
