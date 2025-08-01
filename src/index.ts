@@ -12,7 +12,7 @@ const SNIPPETS_DIR = path.resolve(__dirname, "../snippets");
 
 // Create server instance
 const server = new McpServer({
-  name: "inti",
+  name: "inte",
   version: "1.0.0",
   capabilities: {
     resources: ["listVendors", "getSnippet"],
@@ -38,12 +38,8 @@ server.tool(
       const vendorsDirs = await fs.readdir(SNIPPETS_DIR, { withFileTypes: true });
       for (const vendor of vendorsDirs) {
         if (!vendor.isDirectory()) continue;
-        const langDirs = await fs.readdir(path.join(SNIPPETS_DIR, vendor.name), { withFileTypes: true });
-        for (const lang of langDirs) {
-          if (!lang.isDirectory()) continue;
-          const meta = await readMetadata(path.join(SNIPPETS_DIR, vendor.name, lang.name));
-          if (meta) vendors.push(meta);
-        }
+        const meta = await readMetadata(path.join(SNIPPETS_DIR, vendor.name));
+        if (meta) vendors.push(meta);
       }
     } catch (err) {
       return {
@@ -63,7 +59,7 @@ server.tool(
 server.tool(
   "getSnippet",
   "Get snippet markdown for a vendor",
-  { vendorName: z.string().describe("Vendor and language slug") },
+  { vendorName: z.string().describe("Vendor slug") },
   async ({ vendorName }) => {
     const snippetPath = path.join(SNIPPETS_DIR, vendorName, "snippet.md");
     try {
