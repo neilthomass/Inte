@@ -76,13 +76,14 @@ Choose one of the two modes based on your needs:
 
 **Use when:** You want AI assistants to access integration data, you're building automated tools, or you need programmatic access to integration snippets.
 
-1. **Start the MCP server**
+**Start the MCP server**
    ```bash
    node build/index.js
    ```
+OR 
 
-2. **Connect your MCP-enabled tool**
-   The server will be available for MCP protocol connections following is how to use in config json, make sure to use absolute path
+**Connect your MCP-enabled tool**
+   The server will be available for MCP protocol connections following is how to use the config json for claude and cursor. Make sure to use absolute path.
    ```json
     {
     "mcpServers": {
@@ -97,7 +98,7 @@ Choose one of the two modes based on your needs:
         }
     }
     }
-    ```
+   ```
 
 
 ## When to Use Each Mode
