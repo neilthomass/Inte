@@ -1,6 +1,4 @@
-# Twilio SMS Integration
-
-> **Send and manage SMS messages using Twilio's communication API. Perfect for notifications, alerts, and two-way messaging in your applications.**
+Send and manage SMS messages using Twilio's communication API. Perfect for notifications, alerts, and two-way messaging in your applications.
 
 Install package:
 

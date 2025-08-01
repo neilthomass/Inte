@@ -1,6 +1,4 @@
-# GitHub API Integration
-
-> **Quick integration guide for GitHub's REST API using Octokit.js. Manage repositories, issues, and other GitHub resources programmatically.**
+Quick integration guide for GitHub's REST API using Octokit.js. Manage repositories, issues, and other GitHub resources programmatically.
 
 Install Octokit:
 

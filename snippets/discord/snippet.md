@@ -1,6 +1,4 @@
-# Discord Integration
-
-> **Connect your application with Discord using webhooks and bot API. Send messages, embeds, and manage Discord servers programmatically.**
+Connect your application with Discord using webhooks and bot API. Send messages, embeds, and manage Discord servers programmatically.
 
 Install package:
 

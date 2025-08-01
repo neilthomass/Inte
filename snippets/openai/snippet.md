@@ -1,6 +1,4 @@
-# OpenAI API Integration
-
-> **Integrate powerful AI capabilities using OpenAI's API. Generate text, create embeddings, and build AI-powered features with GPT models.**
+Integrate powerful AI capabilities using OpenAI's API. Generate text, create embeddings, and build AI-powered features with GPT models.
 
 Install package:
 

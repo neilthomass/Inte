@@ -1,6 +1,4 @@
-# SendGrid Email Integration
-
-> **Reliable email delivery service integration with SendGrid. Send transactional emails, newsletters, and automated email campaigns with high deliverability.**
+Reliable email delivery service integration with SendGrid. Send transactional emails, newsletters, and automated email campaigns with high deliverability.
 
 Install package:
 
