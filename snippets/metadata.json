@@ -31,5 +31,41 @@
     ],
     "lastUpdated": "2025-07-30",
     "slug": "twilio"
+  },
+  {
+    "vendorName": "SendGrid",
+    "language": "JavaScript",
+    "topics": [
+      "email",
+      "transactional",
+      "notifications",
+      "marketing"
+    ],
+    "lastUpdated": "2025-01-15",
+    "slug": "sendgrid"
+  },
+  {
+    "vendorName": "Discord",
+    "language": "JavaScript",
+    "topics": [
+      "webhooks",
+      "chat",
+      "notifications",
+      "bot"
+    ],
+    "lastUpdated": "2025-01-15",
+    "slug": "discord"
+  },
+  {
+    "vendorName": "OpenAI",
+    "language": "JavaScript",
+    "topics": [
+      "ai",
+      "machine learning",
+      "text generation",
+      "embeddings"
+    ],
+    "lastUpdated": "2025-01-15",
+    "slug": "openai"
   }
 ]
