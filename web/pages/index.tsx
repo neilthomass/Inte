@@ -6,6 +6,7 @@ interface Vendor {
   language: string;
   topics: string[];
   slug: string;
+  lastUpdated: string;
 }
 
 export default function Home() {
@@ -92,6 +93,7 @@ export default function Home() {
           {selected ? (
             <div className="snippet-content">
               <h2>{selected.vendorName} Integration</h2>
+              <div className="last-updated">Last updated: {selected.lastUpdated}</div>
               <div className="snippet-metadata">
                 <span className="language-tag">{selected.language}</span>
                 <div className="topics">
@@ -156,9 +158,16 @@ export default function Home() {
         }
 
         .snippet-content h2 {
-          margin: 0 0 1rem 0;
+          margin: 0 0 0.5rem 0;
           color: #1a202c;
           font-size: 1.5rem;
+        }
+
+        .last-updated {
+          color: #718096;
+          font-size: 0.875rem;
+          margin-bottom: 1.5rem;
+          font-style: italic;
         }
 
         .snippet-metadata {
