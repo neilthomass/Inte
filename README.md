@@ -8,7 +8,6 @@ A modern integration snippets platform that provides API integration code snippe
 A browser-based interface for manually browsing and copying integration snippets.
 
 **Features:**
-- **GitHub Dark Mode Styling**: Authentic GitHub dark theme with professional code highlighting
 - **Dynamic Search**: Real-time search across vendors and topics
 - **Copy to Clipboard**: One-click copying of integration code snippets
 - **Responsive Design**: Optimized for desktop and mobile devices
