@@ -82,7 +82,23 @@ Choose one of the two modes based on your needs:
    ```
 
 2. **Connect your MCP-enabled tool**
-   The server will be available for MCP protocol connections
+   The server will be available for MCP protocol connections following is how to use in config json, make sure to use absolute path
+   ```json
+    {
+    "mcpServers": {
+        "inte": {
+        "command": "node",
+        "args": ["/Users/YOURUSERNAME/inte/build/index.js"],
+        "tools": [],
+        "resources": ["listVendors", "getSnippet"],
+        "description": "MCP server serving API integration snippets for various vendors and languages",
+        "enabled": true,
+        "category": "development"
+        }
+    }
+    }
+    ```
+
 
 ## When to Use Each Mode
 

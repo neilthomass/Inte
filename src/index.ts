@@ -66,7 +66,7 @@ server.tool(
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("Inti MCP Server running on stdio");
+  console.error("Inte MCP Server running on stdio");
 }
 
 main().catch((err) => {
