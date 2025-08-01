@@ -1,14 +1,9 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { promises as fs } from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 import { z } from "zod";
 
-// Resolve path relative to the built file location so the CLI works
-// no matter the current working directory.
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SNIPPETS_DIR = path.resolve(__dirname, "../snippets");
+const BASE_URL =
+  "https://raw.githubusercontent.com/neiltthomas/inte/main/snippets";
 
 // Create server instance
 const server = new McpServer({
@@ -20,27 +15,24 @@ const server = new McpServer({
   },
 });
 
-async function readMetadata(dir: string) {
-  try {
-    const data = await fs.readFile(path.join(dir, "metadata.json"), "utf8");
-    return JSON.parse(data);
-  } catch {
-    return null;
-  }
+async function fetchMetadata(): Promise<unknown[]> {
+  const url = `${BASE_URL}/metadata.json`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  return res.json();
 }
 
 server.tool(
   "listVendors",
   "List available snippet vendors",
   async () => {
-    const vendors: unknown[] = [];
     try {
-      const vendorsDirs = await fs.readdir(SNIPPETS_DIR, { withFileTypes: true });
-      for (const vendor of vendorsDirs) {
-        if (!vendor.isDirectory()) continue;
-        const meta = await readMetadata(path.join(SNIPPETS_DIR, vendor.name));
-        if (meta) vendors.push(meta);
-      }
+      const vendors = await fetchMetadata();
+      return {
+        content: [
+          { type: "text", text: JSON.stringify(vendors, null, 2) },
+        ],
+      };
     } catch (err) {
       return {
         content: [
@@ -48,11 +40,6 @@ server.tool(
         ],
       };
     }
-    return {
-      content: [
-        { type: "text", text: JSON.stringify(vendors, null, 2) },
-      ],
-    };
   }
 );
 
@@ -61,9 +48,10 @@ server.tool(
   "Get snippet markdown for a vendor",
   { vendorName: z.string().describe("Vendor slug") },
   async ({ vendorName }) => {
-    const snippetPath = path.join(SNIPPETS_DIR, vendorName, "snippet.md");
     try {
-      const data = await fs.readFile(snippetPath, "utf8");
+      const res = await fetch(`${BASE_URL}/${vendorName}/snippet.md`);
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+      const data = await res.text();
       return { content: [{ type: "text", text: data }] };
     } catch (err) {
       return {
