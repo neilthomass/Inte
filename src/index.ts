@@ -3,7 +3,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 
 const BASE_URL =
-  "https://raw.githubusercontent.com/neiltthomas/inte/main/snippets";
+  "https://raw.githubusercontent.com/neilthomass/Inte/main/snippets";
 
 // Create server instance
 const server = new McpServer({
