@@ -1,0 +1,12 @@
+{
+  "vendorName": "OpenAI",
+  "language": "JavaScript",
+  "topics": [
+    "ai",
+    "machine learning",
+    "text generation",
+    "embeddings"
+  ],
+  "lastUpdated": "2025-01-15",
+  "slug": "openai"
+}

@@ -1,0 +1,12 @@
+{
+  "vendorName": "Discord",
+  "language": "JavaScript",
+  "topics": [
+    "webhooks",
+    "chat",
+    "notifications",
+    "bot"
+  ],
+  "lastUpdated": "2025-01-15",
+  "slug": "discord"
+}

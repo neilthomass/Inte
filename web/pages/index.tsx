@@ -36,6 +36,17 @@ export default function Home() {
     setSnippet(await res.text());
   };
 
+  const copyToClipboard = async () => {
+    if (selected && snippet && snippet !== 'Loading...') {
+      try {
+        await navigator.clipboard.writeText(snippet);
+        // You could add a toast notification here if desired
+      } catch (err) {
+        console.error('Failed to copy: ', err);
+      }
+    }
+  };
+
   return (
     <div className="app">
       {/* Header */}
@@ -92,8 +103,23 @@ export default function Home() {
         <section className="snippets-panel">
           {selected ? (
             <div className="snippet-content">
-              <h2>{selected.vendorName} Integration</h2>
-              <div className="last-updated">Last updated: {selected.lastUpdated}</div>
+              <div className="snippet-header">
+                <div className="snippet-title-section">
+                  <h2>{selected.vendorName} Integration</h2>
+                  <div className="last-updated">Last updated: {selected.lastUpdated}</div>
+                </div>
+                <button 
+                  onClick={copyToClipboard} 
+                  className="copy-button"
+                  title="Copy markdown to clipboard"
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+                    <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+                  </svg>
+                  Copy
+                </button>
+              </div>
               <div className="snippet-metadata">
                 <span className="language-tag">{selected.language}</span>
                 <div className="topics">
@@ -102,9 +128,31 @@ export default function Home() {
                   ))}
                 </div>
               </div>
-              <div className="markdown-content">
-                <ReactMarkdown>{snippet}</ReactMarkdown>
-              </div>
+                              <div className="markdown-content">
+                  <ReactMarkdown
+                    components={{
+                      code({node, className, children, ...props}: any) {
+                        const match = /language-(\w+)/.exec(className || '');
+                        const language = match ? match[1] : '';
+                        const isInline = !className;
+                        
+                        if (isInline) {
+                          return <code className="inline-code" {...props}>{children}</code>;
+                        }
+                        
+                        return (
+                          <pre className="code-block">
+                            <code className={`language-${language}`} {...props}>
+                              {children}
+                            </code>
+                          </pre>
+                        );
+                      }
+                    }}
+                  >
+                    {snippet}
+                  </ReactMarkdown>
+                </div>
             </div>
           ) : (
             <div className="no-selection">
@@ -115,33 +163,54 @@ export default function Home() {
         </section>
       </main>
 
+      <style jsx global>{`
+        * {
+          box-sizing: border-box;
+        }
+
+        html, body {
+          margin: 0;
+          padding: 0;
+          background-color: #0d1117;
+          color: #f0f6fc;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+        }
+
+        #__next {
+          background-color: #0d1117;
+          min-height: 100vh;
+        }
+      `}</style>
       <style jsx>{`
         .app {
           min-height: 100vh;
           display: flex;
           flex-direction: column;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          background-color: #f8fafc;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+          background-color: #0d1117;
+          color: #f0f6fc;
         }
 
         .header {
-          background: white;
+          background: #161b22;
           padding: 2rem;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-          border-bottom: 1px solid #e2e8f0;
+          border-bottom: 1px solid #30363d;
         }
 
         .header h1 {
           margin: 0;
-          color: #1a202c;
+          margin-left: 6.5rem;
+          color: #f0f6fc;
           font-size: 2rem;
-          font-weight: 700;
+          font-weight: 600;
         }
 
         .main-content {
           flex: 1;
           display: grid;
           grid-template-columns: 350px 1fr;
+          grid-template-rows: min-content;
+          align-items: start;
           gap: 2rem;
           padding: 2rem;
           max-width: 1400px;
@@ -150,24 +219,53 @@ export default function Home() {
         }
 
         .snippets-panel {
-          background: white;
-          border-radius: 12px;
+          background: #161b22;
+          border-radius: 6px;
           padding: 2rem;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-          border: 1px solid #e2e8f0;
+          border: 1px solid #30363d;
         }
 
-        .snippet-content h2 {
+        .snippet-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 1.5rem;
+        }
+
+        .snippet-title-section h2 {
           margin: 0 0 0.5rem 0;
-          color: #1a202c;
+          color: #f0f6fc;
           font-size: 1.5rem;
+          font-weight: 600;
         }
 
         .last-updated {
-          color: #718096;
+          color: #8b949e;
           font-size: 0.875rem;
-          margin-bottom: 1.5rem;
-          font-style: italic;
+          margin-bottom: 0;
+        }
+
+        .copy-button {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          background: #21262d;
+          color: #f0f6fc;
+          border: 1px solid #30363d;
+          border-radius: 6px;
+          padding: 8px 12px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .copy-button:hover {
+          background: #30363d;
+          border-color: #8b949e;
+        }
+
+        .copy-button:active {
+          background: #282e33;
         }
 
         .snippet-metadata {
@@ -179,11 +277,11 @@ export default function Home() {
         }
 
         .language-tag {
-          background: #3182ce;
-          color: white;
+          background: #1f6feb;
+          color: #ffffff;
           padding: 4px 12px;
-          border-radius: 6px;
-          font-size: 14px;
+          border-radius: 12px;
+          font-size: 12px;
           font-weight: 500;
         }
 
@@ -194,38 +292,145 @@ export default function Home() {
         }
 
         .topic-tag {
-          background: #edf2f7;
-          color: #4a5568;
+          background: #21262d;
+          color: #f0f6fc;
+          border: 1px solid #30363d;
           padding: 4px 10px;
-          border-radius: 4px;
-          font-size: 13px;
+          border-radius: 12px;
+          font-size: 12px;
         }
 
         .markdown-content {
-          color: #2d3748;
+          color: #f0f6fc;
           line-height: 1.6;
+        }
+
+        .markdown-content h1,
+        .markdown-content h2,
+        .markdown-content h3,
+        .markdown-content h4,
+        .markdown-content h5,
+        .markdown-content h6 {
+          color: #f0f6fc;
+          border-bottom: 1px solid #30363d;
+          padding-bottom: 0.3rem;
+          margin-top: 1.5rem;
+          margin-bottom: 1rem;
+        }
+
+        .markdown-content p {
+          margin-bottom: 1rem;
+        }
+
+        .markdown-content .inline-code {
+          background: #21262d;
+          color: #f85149;
+          padding: 0.2em 0.4em;
+          border-radius: 3px;
+          font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+          font-size: 85%;
+          border: 1px solid #30363d;
+          white-space: nowrap;
+          box-sizing: border-box;
+        }
+
+        .markdown-content .code-block {
+          background: #0d1117;
+          border: 1px solid #30363d;
+          border-radius: 6px;
+          padding: 16px;
+          overflow-x: auto;
+          margin: 16px 0;
+          position: relative;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        }
+
+        .markdown-content .code-block code {
+          background: transparent;
+          color: #f0f6fc;
+          padding: 0;
+          border: none;
+          border-radius: 0;
+          font-size: 14px;
+          font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+          line-height: 1.45;
+          display: block;
+          word-wrap: break-word;
+          white-space: pre;
+          box-sizing: border-box;
+        }
+
+        /* Fallback for any remaining generic code/pre elements */
+        .markdown-content code {
+          background: #21262d;
+          color: #f85149;
+          padding: 0.2em 0.4em;
+          border-radius: 3px;
+          font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+          font-size: 85%;
+          border: 1px solid #30363d;
+          box-sizing: border-box;
+        }
+
+        .markdown-content pre {
+          background: #0d1117;
+          border: 1px solid #30363d;
+          border-radius: 6px;
+          padding: 16px;
+          overflow-x: auto;
+          margin: 16px 0;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        }
+
+        .markdown-content pre code {
+          background: transparent;
+          color: #f0f6fc;
+          padding: 0;
+          border: none;
+          border-radius: 0;
+          font-size: 14px;
+          font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+          line-height: 1.45;
+          display: block;
+          word-wrap: break-word;
+          white-space: pre;
+          box-sizing: border-box;
+        }
+
+        .markdown-content blockquote {
+          border-left: 4px solid #30363d;
+          padding-left: 1rem;
+          color: #8b949e;
+          margin: 1rem 0;
+        }
+
+        .markdown-content a {
+          color: #58a6ff;
+          text-decoration: none;
+        }
+
+        .markdown-content a:hover {
+          text-decoration: underline;
         }
 
         .no-selection {
           text-align: center;
-          color: #718096;
+          color: #8b949e;
           padding: 4rem 2rem;
         }
 
         .no-selection h2 {
-          color: #4a5568;
+          color: #f0f6fc;
           margin-bottom: 1rem;
         }
 
         .menu-panel {
-          background: white;
-          border-radius: 12px;
+          background: #161b22;
+          border-radius: 6px;
           padding: 1.5rem;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-          border: 1px solid #e2e8f0;
+          border: 1px solid #30363d;
           height: fit-content;
-          max-height: calc(100vh - 200px);
-          overflow-y: auto;
+          min-height: 200px;
         }
 
         .search-container {
@@ -234,24 +439,30 @@ export default function Home() {
 
         .search-input {
           width: 100%;
-          padding: 12px 16px;
-          border: 2px solid #e2e8f0;
-          border-radius: 8px;
-          font-size: 16px;
+          padding: 8px 12px;
+          background: #0d1117;
+          border: 1px solid #30363d;
+          border-radius: 6px;
+          color: #f0f6fc;
+          font-size: 14px;
           transition: border-color 0.2s;
           box-sizing: border-box;
         }
 
         .search-input:focus {
           outline: none;
-          border-color: #3182ce;
-          box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+          border-color: #1f6feb;
+          box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.3);
+        }
+
+        .search-input::placeholder {
+          color: #8b949e;
         }
 
         .menu-panel h3 {
           margin: 0 0 1rem 0;
-          color: #1a202c;
-          font-size: 1.1rem;
+          color: #f0f6fc;
+          font-size: 16px;
           font-weight: 600;
         }
 
@@ -262,36 +473,35 @@ export default function Home() {
         }
 
         .vendor-item {
-          padding: 1rem;
-          border: 1px solid #e2e8f0;
-          border-radius: 8px;
+          padding: 12px;
+          border: 1px solid #30363d;
+          border-radius: 6px;
           cursor: pointer;
-          transition: all 0.2s;
-          background: #fafafa;
+          transition: all 0.15s;
+          background: #0d1117;
         }
 
         .vendor-item:hover {
-          border-color: #cbd5e0;
-          background: white;
-          transform: translateY(-1px);
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          border-color: #8b949e;
+          background: #21262d;
         }
 
         .vendor-item.active {
-          border-color: #3182ce;
-          background: #ebf8ff;
+          border-color: #1f6feb;
+          background: #0c2d6b;
         }
 
         .vendor-name {
           font-weight: 600;
-          color: #1a202c;
+          color: #f0f6fc;
           margin-bottom: 0.5rem;
+          font-size: 14px;
         }
 
         .vendor-meta {
           display: flex;
           font-size: 12px;
-          color: #718096;
+          color: #8b949e;
           margin-bottom: 0.5rem;
         }
 
@@ -302,23 +512,41 @@ export default function Home() {
         }
 
         .mini-topic {
-          background: #edf2f7;
-          color: #4a5568;
+          background: #21262d;
+          color: #8b949e;
           padding: 2px 6px;
           border-radius: 3px;
           font-size: 11px;
         }
 
         .more-topics {
-          color: #718096;
+          color: #8b949e;
           font-size: 11px;
           font-style: italic;
         }
 
         .no-results {
           text-align: center;
-          color: #718096;
+          color: #8b949e;
           padding: 2rem 1rem;
+        }
+
+        /* Scrollbar styling for dark theme */
+        ::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+          background: #161b22;
+        }
+
+        ::-webkit-scrollbar-thumb {
+          background: #30363d;
+          border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+          background: #484f58;
         }
 
         @media (max-width: 768px) {
@@ -329,15 +557,31 @@ export default function Home() {
           }
 
           .menu-panel {
-            max-height: 400px;
+            min-height: 150px;
+            max-height: 70vh;
+            overflow-y: auto;
           }
 
           .header {
             padding: 1rem;
           }
 
+          .header h1 {
+            margin-left: 2.5rem;
+          }
+
           .snippets-panel {
             padding: 1rem;
+          }
+
+          .snippet-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+          }
+
+          .copy-button {
+            align-self: flex-start;
           }
         }
       `}</style>

@@ -1,7 +1,11 @@
 {
   "vendorName": "Twilio",
   "language": "JavaScript",
-  "topics": ["sms", "api", "nodejs"],
+  "topics": [
+    "sms",
+    "api",
+    "nodejs"
+  ],
   "lastUpdated": "2025-07-30",
   "slug": "twilio"
 }

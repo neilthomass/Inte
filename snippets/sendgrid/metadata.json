@@ -1,0 +1,12 @@
+{
+  "vendorName": "SendGrid",
+  "language": "JavaScript",
+  "topics": [
+    "email",
+    "transactional",
+    "notifications",
+    "marketing"
+  ],
+  "lastUpdated": "2025-01-15",
+  "slug": "sendgrid"
+}
