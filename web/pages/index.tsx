@@ -14,12 +14,72 @@ export default function Home() {
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<Vendor | null>(null);
   const [snippet, setSnippet] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [snippetLoading, setSnippetLoading] = useState(false);
+  const [snippetError, setSnippetError] = useState<string | null>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   useEffect(() => {
-    fetch('https://raw.githubusercontent.com/neilthomass/Inte/main/snippets/metadata.json')
-      .then(res => res.json())
-      .then(setVendors);
+    loadMetadata();
   }, []);
+
+  const loadMetadata = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch('https://raw.githubusercontent.com/neilthomass/Inte/main/snippets/metadata.json');
+      
+      if (!response.ok) {
+        throw new Error(`Failed to load integrations (HTTP ${response.status}). Please check your internet connection.`);
+      }
+      
+      const text = await response.text();
+      
+      if (!text.trim()) {
+        throw new Error('Integration metadata is empty.');
+      }
+      
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        throw new Error('Integration metadata is corrupted. Please try again later.');
+      }
+      
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid integration metadata format.');
+      }
+      
+      if (data.length === 0) {
+        setError('No integrations are currently available.');
+        setVendors([]);
+        return;
+      }
+      
+      // Validate each vendor object
+      const validVendors = data.filter(vendor => {
+        return vendor && 
+               typeof vendor.vendorName === 'string' && 
+               typeof vendor.slug === 'string' &&
+               Array.isArray(vendor.topics);
+      });
+      
+      if (validVendors.length === 0) {
+        throw new Error('No valid integrations found in metadata.');
+      }
+      
+      setVendors(validVendors);
+      
+    } catch (err) {
+      console.error('Error loading metadata:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load integrations. Please try again.');
+      setVendors([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filtered = vendors.filter(v => {
     const q = query.toLowerCase();
@@ -30,19 +90,87 @@ export default function Home() {
   });
 
   const loadSnippet = async (slug: string) => {
-    setSnippet('Loading...');
-    const url = `https://raw.githubusercontent.com/neilthomass/Inte/main/snippets/${slug}/snippet.md`;
-    const res = await fetch(url);
-    setSnippet(await res.text());
+    try {
+      setSnippetLoading(true);
+      setSnippetError(null);
+      setSnippet('');
+      
+      const url = `https://raw.githubusercontent.com/neilthomass/Inte/main/snippets/${slug}/snippet.md`;
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('This integration snippet is not available.');
+        }
+        throw new Error(`Failed to load snippet (HTTP ${response.status}). Please try again.`);
+      }
+      
+      const text = await response.text();
+      
+      if (!text.trim()) {
+        throw new Error('This integration snippet is empty.');
+      }
+      
+      // Basic markdown validation - check for suspicious content
+      if (text.includes('<script') || text.includes('javascript:')) {
+        throw new Error('Invalid snippet content detected.');
+      }
+      
+      setSnippet(text);
+      
+    } catch (err) {
+      console.error('Error loading snippet:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load snippet.';
+      setSnippetError(errorMessage);
+      setSnippet(`# Error Loading Snippet\n\n${errorMessage}\n\nPlease try selecting this integration again.`);
+    } finally {
+      setSnippetLoading(false);
+    }
   };
 
   const copyToClipboard = async () => {
-    if (selected && snippet && snippet !== 'Loading...') {
+    if (!selected || !snippet || snippet === 'Loading...' || snippetLoading || snippetError) {
+      return;
+    }
+
+    try {
+      // Check if clipboard API is available
+      if (!navigator.clipboard) {
+        throw new Error('Clipboard API not supported');
+      }
+
+      await navigator.clipboard.writeText(snippet);
+      setCopySuccess(true);
+      
+      // Reset success state after 2 seconds
+      setTimeout(() => setCopySuccess(false), 2000);
+      
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      
+      // Fallback to textarea method for older browsers
       try {
-        await navigator.clipboard.writeText(snippet);
-        // You could add a toast notification here if desired
-      } catch (err) {
-        console.error('Failed to copy: ', err);
+        const textArea = document.createElement('textarea');
+        textArea.value = snippet;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        if (successful) {
+          setCopySuccess(true);
+          setTimeout(() => setCopySuccess(false), 2000);
+        } else {
+          throw new Error('Copy command failed');
+        }
+      } catch (fallbackErr) {
+        console.error('Fallback copy failed:', fallbackErr);
+        alert('Copy failed. Please manually select and copy the content.');
       }
     }
   };
@@ -61,41 +189,64 @@ export default function Home() {
           <div className="search-container">
             <input
               type="text"
-              placeholder="Search vendors and topics..."
+              placeholder={loading ? "Loading..." : "Search vendors and topics..."}
               value={query}
               onChange={e => setQuery(e.target.value)}
               className="search-input"
+              disabled={loading}
             />
           </div>
           
           <h3>Available Integrations</h3>
-          <div className="vendors-list">
-            {filtered.map(v => (
-              <div
-                key={v.slug}
-                className={`vendor-item ${selected?.slug === v.slug ? 'active' : ''}`}
-                onClick={() => {
-                  setSelected(v);
-                  loadSnippet(v.slug);
-                }}
-              >
-                <div className="vendor-name">{v.vendorName}</div>
-                <div className="vendor-meta">
-                  <span className="language">{v.language}</span>
-                </div>
-                <div className="vendor-topics">
-                  {v.topics.slice(0, 3).map(topic => (
-                    <span key={topic} className="mini-topic">{topic}</span>
-                  ))}
-                  {v.topics.length > 3 && <span className="more-topics">+{v.topics.length - 3}</span>}
-                </div>
-              </div>
-            ))}
-          </div>
-          {filtered.length === 0 && query && (
-            <div className="no-results">
-              <p>No integrations found for "{query}"</p>
+          
+          {loading && (
+            <div className="loading-state">
+              <div className="loading-spinner"></div>
+              <p>Loading integrations...</p>
             </div>
+          )}
+          
+          {error && (
+            <div className="error-state">
+              <div className="error-icon">⚠</div>
+              <p className="error-message">{error}</p>
+              <button onClick={loadMetadata} className="retry-button">
+                Retry
+              </button>
+            </div>
+          )}
+          
+          {!loading && !error && (
+            <>
+              <div className="vendors-list">
+                {filtered.map(v => (
+                  <div
+                    key={v.slug}
+                    className={`vendor-item ${selected?.slug === v.slug ? 'active' : ''}`}
+                    onClick={() => {
+                      setSelected(v);
+                      loadSnippet(v.slug);
+                    }}
+                  >
+                    <div className="vendor-name">{v.vendorName}</div>
+                    <div className="vendor-meta">
+                      <span className="language">{v.language}</span>
+                    </div>
+                    <div className="vendor-topics">
+                      {v.topics.slice(0, 3).map(topic => (
+                        <span key={topic} className="mini-topic">{topic}</span>
+                      ))}
+                      {v.topics.length > 3 && <span className="more-topics">+{v.topics.length - 3}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {filtered.length === 0 && query && (
+                <div className="no-results">
+                  <p>No integrations found for "{query}"</p>
+                </div>
+              )}
+            </>
           )}
         </aside>
 
@@ -110,14 +261,26 @@ export default function Home() {
                 </div>
                 <button 
                   onClick={copyToClipboard} 
-                  className="copy-button"
+                  className={`copy-button ${copySuccess ? 'copy-success' : ''}`}
                   title="Copy markdown to clipboard"
+                  disabled={snippetLoading || !!snippetError}
                 >
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
-                    <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
-                  </svg>
-                  Copy
+                  {copySuccess ? (
+                    <>
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"></path>
+                      </svg>
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+                        <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+                      </svg>
+                      Copy
+                    </>
+                  )}
                 </button>
               </div>
               <div className="snippet-metadata">
@@ -128,7 +291,28 @@ export default function Home() {
                   ))}
                 </div>
               </div>
-                              <div className="markdown-content">
+                                            <div className="markdown-content">
+                {snippetLoading && (
+                  <div className="snippet-loading">
+                    <div className="loading-spinner"></div>
+                    <p>Loading snippet...</p>
+                  </div>
+                )}
+                
+                {snippetError && (
+                  <div className="snippet-error">
+                    <div className="error-icon">⚠</div>
+                    <p className="error-message">{snippetError}</p>
+                    <button 
+                      onClick={() => selected && loadSnippet(selected.slug)} 
+                      className="retry-button"
+                    >
+                      Retry
+                    </button>
+                  </div>
+                )}
+                
+                {!snippetLoading && snippet && (
                   <ReactMarkdown
                     components={{
                       code({node, className, children, ...props}: any) {
@@ -152,7 +336,8 @@ export default function Home() {
                   >
                     {snippet}
                   </ReactMarkdown>
-                </div>
+                )}
+              </div>
             </div>
           ) : (
             <div className="no-selection">
@@ -266,6 +451,27 @@ export default function Home() {
 
         .copy-button:active {
           background: #282e33;
+        }
+
+        .copy-button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .copy-button:disabled:hover {
+          background: #21262d;
+          border-color: #30363d;
+        }
+
+        .copy-success {
+          background: #238636 !important;
+          border-color: #2ea043 !important;
+          color: #ffffff !important;
+        }
+
+        .copy-success:hover {
+          background: #2ea043 !important;
+          border-color: #46954a !important;
         }
 
         .snippet-metadata {
@@ -459,6 +665,11 @@ export default function Home() {
           color: #8b949e;
         }
 
+        .search-input:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
         .menu-panel h3 {
           margin: 0 0 1rem 0;
           color: #f0f6fc;
@@ -529,6 +740,85 @@ export default function Home() {
           text-align: center;
           color: #8b949e;
           padding: 2rem 1rem;
+        }
+
+        .loading-state, .error-state {
+          text-align: center;
+          padding: 2rem 1rem;
+        }
+
+        .loading-state {
+          color: #8b949e;
+        }
+
+        .error-state {
+          color: #f85149;
+          border: 1px solid #da3633;
+          border-radius: 6px;
+          background: #321c1e;
+          margin: 1rem 0;
+        }
+
+        .snippet-loading, .snippet-error {
+          text-align: center;
+          padding: 3rem 2rem;
+        }
+
+        .snippet-loading {
+          color: #8b949e;
+        }
+
+        .snippet-error {
+          color: #f85149;
+          border: 1px solid #da3633;
+          border-radius: 6px;
+          background: #321c1e;
+          margin: 1rem 0;
+        }
+
+        .loading-spinner {
+          width: 24px;
+          height: 24px;
+          border: 2px solid #30363d;
+          border-top: 2px solid #1f6feb;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin: 0 auto 1rem auto;
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        .error-icon {
+          font-size: 2rem;
+          margin-bottom: 1rem;
+        }
+
+        .error-message {
+          margin-bottom: 1.5rem;
+          font-size: 14px;
+        }
+
+        .retry-button {
+          background: #21262d;
+          color: #f0f6fc;
+          border: 1px solid #30363d;
+          border-radius: 6px;
+          padding: 8px 16px;
+          font-size: 13px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .retry-button:hover {
+          background: #30363d;
+          border-color: #8b949e;
+        }
+
+        .retry-button:active {
+          background: #282e33;
         }
 
         /* Scrollbar styling for dark theme */
