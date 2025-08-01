@@ -15,7 +15,7 @@ export default function Home() {
   const [snippet, setSnippet] = useState('');
 
   useEffect(() => {
-    fetch('https://raw.githubusercontent.com/neiltthomas/inte/main/snippets/metadata.json')
+    fetch('https://raw.githubusercontent.com/neilthomass/Inte/main/snippets/metadata.json')
       .then(res => res.json())
       .then(setVendors);
   }, []);
@@ -30,7 +30,7 @@ export default function Home() {
 
   const loadSnippet = async (slug: string) => {
     setSnippet('Loading...');
-    const url = `https://raw.githubusercontent.com/neiltthomas/inte/main/snippets/${slug}/snippet.md`;
+    const url = `https://raw.githubusercontent.com/neilthomass/Inte/main/snippets/${slug}/snippet.md`;
     const res = await fetch(url);
     setSnippet(await res.text());
   };
